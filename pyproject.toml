@@ -1,0 +1,161 @@
+[project]
+name = "eval-agent"
+version = "0.1.0"
+description = "RAG-agnostic evaluation platform"
+requires-python = ">=3.13"
+dependencies = [
+    "agno[openai]>=1.8",
+    "alembic>=1.14",
+    "cryptography>=44",
+    "fastapi>=0.115",
+    "httpx>=0.28",
+    "jinja2>=3.1",
+    "jsonpath-ng>=1.7",
+    "openpyxl>=3.1",
+    "pydantic>=2.10",
+    "python-multipart>=0.0.18",
+    "pyyaml>=6.0",
+    "sqlalchemy>=2.0",
+    "uvicorn>=0.34",
+]
+
+[project.optional-dependencies]
+pdf = ["weasyprint>=63"]
+
+[project.scripts]
+eval-api = "app.main:serve"
+eval-worker = "app.worker:main"
+
+[dependency-groups]
+dev = [
+    "import-linter>=2.3",
+    "pytest>=8.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend/app"]
+
+[tool.hatch.build.targets.wheel.sources]
+"backend" = ""
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+testpaths = ["backend/tests"]
+addopts = "-m 'not live'"
+markers = ["live: calls a real model and is off in CI"]
+
+[tool.importlinter]
+root_packages = ["app"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Controllers stay above infrastructure"
+type = "forbidden"
+source_modules = ["app.api"]
+forbidden_modules = [
+    "app.infrastructure",
+    "app.security",
+    "agno",
+    "sqlalchemy",
+]
+
+[[tool.importlinter.contracts]]
+name = "Services stay on ports"
+type = "forbidden"
+source_modules = ["app.services"]
+forbidden_modules = [
+    "sqlalchemy",
+    "httpx",
+    "agno",
+    "fastapi",
+    "app.infrastructure",
+]
+
+[[tool.importlinter.contracts]]
+name = "Port modules import domain only"
+type = "forbidden"
+source_modules = [
+    "app.services.run_repository",
+    "app.services.job_queue",
+    "app.services.judge",
+    "app.services.rag_adapter",
+    "app.services.report_renderer",
+]
+forbidden_modules = [
+    "app.api",
+    "app.infrastructure",
+    "app.evaluators",
+    "app.diagnosis",
+    "app.security",
+    "app.services.project_service",
+    "app.services.system_service",
+    "app.services.dataset_service",
+    "app.services.run_service",
+    "app.services.diagnosis_service",
+    "app.services.report_service",
+    "app.services.calibration_service",
+    "fastapi",
+    "sqlalchemy",
+    "agno",
+    "httpx",
+]
+
+[[tool.importlinter.contracts]]
+name = "Evaluators do not touch infrastructure or services"
+type = "forbidden"
+source_modules = ["app.evaluators"]
+forbidden_modules = [
+    "app.infrastructure",
+    "agno",
+    "app.services.run_service",
+    "app.services.project_service",
+    "app.services.system_service",
+    "app.services.dataset_service",
+    "app.services.diagnosis_service",
+    "app.services.report_service",
+    "app.services.calibration_service",
+    "app.services.job_queue",
+    "app.services.run_repository",
+    "app.services.rag_adapter",
+    "app.services.report_renderer",
+    "fastapi",
+    "sqlalchemy",
+    "httpx",
+]
+
+[[tool.importlinter.contracts]]
+name = "Only the composition root imports infrastructure"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = [
+    "app.api",
+    "app.services",
+    "app.domain",
+    "app.evaluators",
+    "app.diagnosis",
+    "app.security",
+    "app.worker",
+]
+forbidden_modules = ["app.infrastructure"]
+
+[[tool.importlinter.contracts]]
+name = "Security is adapter-only"
+type = "forbidden"
+allow_indirect_imports = true
+source_modules = [
+    "app.api",
+    "app.services",
+    "app.domain",
+    "app.evaluators",
+    "app.diagnosis",
+    "app.main",
+    "app.worker",
+    "app.infrastructure.sqlite",
+    "app.infrastructure.judge",
+    "app.infrastructure.renderers",
+]
+forbidden_modules = ["app.security"]

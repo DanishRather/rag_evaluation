@@ -1,0 +1,20 @@
+"""Initial schema."""
+
+from alembic import op
+
+revision = "001_initial"
+down_revision = None
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    from app.infrastructure.sqlite.orm import Base
+
+    Base.metadata.create_all(bind=op.get_bind())
+
+
+def downgrade() -> None:
+    from app.infrastructure.sqlite.orm import Base
+
+    Base.metadata.drop_all(bind=op.get_bind())

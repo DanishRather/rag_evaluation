@@ -1,0 +1,29 @@
+version: 1
+rows:
+  - id: history_in_search
+    setting: retrieval_query
+    when: { finding: search_ignores_history }
+    current: "History failures: {history_failure_rate}"
+    try: "Send prior turns into the search query, not only into the answer prompt."
+    why: "A standalone rewrite retrieves the gold passage and the original turn does not."
+
+  - id: raise_chunk_overlap
+    setting: chunk_overlap
+    when: { split_answer_rate: { min: 0.2 } }
+    current: "{chunk_overlap_tokens} configured, neighbor overlap {neighbor_overlap}"
+    try: "Raise overlap toward 20% of chunk size and keep the gold passage in one chunk."
+    why: "Answers are landing across chunk boundaries."
+
+  - id: retrieval_quality
+    setting: embedding_model
+    when: { finding: embedding_or_search_quality }
+    current: "{embedding_model}, top_k {top_k}, mean hit {hit}"
+    try: "Try a stronger embedding model or a higher top_k, then re-run the same file."
+    why: "The gold passage is not in the retrieved chunks."
+
+  - id: answer_prompt
+    setting: prompts
+    when: { finding: llm_ignored_context }
+    current: "{llm}"
+    try: "Tell the model to answer only from the retrieved chunks and to quote the chunk it used."
+    why: "The gold passage was retrieved and the answer is still unfaithful."

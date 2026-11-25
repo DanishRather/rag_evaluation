@@ -1,0 +1,51 @@
+version: 1
+rules:
+  - id: search_ignores_history
+    cause: Search ignores history
+    severity: high
+    when:
+      correctness: n/a
+      faithfulness: n/a
+      gold_retrieved: false
+      split: n/a
+      standalone_works: true
+
+  - id: chunking_cut_the_answer
+    cause: Chunking cut the answer
+    severity: high
+    when:
+      correctness: { max: 0.8 }
+      faithfulness: n/a
+      gold_retrieved: n/a
+      split: true
+      standalone_works: n/a
+
+  - id: embedding_or_search_quality
+    cause: Embedding or search quality
+    severity: critical
+    when:
+      correctness: n/a
+      faithfulness: n/a
+      gold_retrieved: false
+      split: n/a
+      standalone_works: n/a
+
+  - id: llm_ignored_context
+    cause: LLM ignored context
+    severity: medium
+    when:
+      correctness: n/a
+      faithfulness: { max: 0.8 }
+      gold_retrieved: true
+      split: false
+      standalone_works: n/a
+
+  - id: working_as_intended
+    cause: Working as intended
+    severity: info
+    when:
+      correctness: { min: 0.8 }
+      faithfulness: { min: 0.8 }
+      gold_retrieved: true
+      split: n/a
+      standalone_works: n/a
